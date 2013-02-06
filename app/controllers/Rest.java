@@ -53,7 +53,15 @@ public class Rest extends Controller {
 	@With(JsonAction.class)
 	@BodyParser.Of(BodyParser.Json.class)
 	public static Result updateBook(String id) {
-		return TODO;
+		JsonNode json = request().body().asJson();
+		Book updatedBook = Json.fromJson(json, Book.class);
+		BookValidator validator = new BookValidator();
+		if (validator.validate(updatedBook) && id.equals(updatedBook.getId().toString())) {
+			MorphiaObject.dao.save(updatedBook, new WriteConcern(true));
+			JsonNode result = Json.toJson(updatedBook);
+			return ok(result);
+		}
+		return badRequest();
 	}
 
 	@With(JsonAction.class)

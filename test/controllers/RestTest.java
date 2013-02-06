@@ -1,7 +1,9 @@
 package controllers;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static play.test.Helpers.callAction;
 import static play.test.Helpers.contentAsString;
@@ -24,6 +26,7 @@ import play.libs.Json;
 import play.mvc.Result;
 
 import com.mongodb.CommandResult;
+import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
 public class RestTest {
@@ -198,6 +201,7 @@ public class RestTest {
 				assertThat(status(result)).isEqualTo(201);
 				Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
 				assertThat(insertedBook.equals(fBook)).isTrue();
+				verify(dao).save(any(Book.class), any(WriteConcern.class));
 			}
 		});
 	}
@@ -215,7 +219,46 @@ public class RestTest {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.newBook(),
 						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
+				assertThat(status(result)).isEqualTo(400);
+			}
+		});
+	}
 
+	@Test
+	public void updatesAnExistingBook() {
+		Book book = new Book("A new book");
+		book.setAuthor("Any Body");
+		final Book fBook = book;
+		final JsonNode body = Json.toJson(fBook);
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.updateBook(fBook.getId().toString()), fakeRequest()
+						.withJsonBody(body).withHeader("Accept", "application/json"));
+				String jsonResult = contentAsString(result);
+
+				assertThat(status(result)).isEqualTo(200);
+				Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
+				assertThat(insertedBook.equals(fBook)).isTrue();
+				verify(dao).save(any(Book.class), any(WriteConcern.class));
+			}
+		});
+	}
+
+	@Test
+	public void failsForNonExistingBook() {
+		final ObjectId unknown = ObjectId.get();
+		Book book = new Book("A new book");
+		book.setAuthor("Any Body");
+		final Book fBook = book;
+		final JsonNode body = Json.toJson(fBook);
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.updateBook(unknown.toString()), fakeRequest()
+						.withJsonBody(body).withHeader("Accept", "application/json"));
 				assertThat(status(result)).isEqualTo(400);
 			}
 		});
