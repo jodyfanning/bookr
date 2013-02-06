@@ -9,7 +9,7 @@ import play.data.validation.Constraints.Required;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
 
-@Entity(value="books", concern="FSYNC_SAFE", noClassnameStored=true)
+@Entity(value = "books", concern = "FSYNC_SAFE", noClassnameStored = true)
 public class Book {
 
 	@JsonSerialize(using = ObjectIdSerializer.class)
@@ -38,22 +38,16 @@ public class Book {
 		int result = 1;
 		result = prime * result + ((author == null) ? 0 : author.hashCode());
 		result = prime * result + ((isbn == null) ? 0 : isbn.hashCode());
-		result = prime * result
-				+ ((language == null) ? 0 : language.hashCode());
-		result = prime * result
-				+ ((originaltitle == null) ? 0 : originaltitle.hashCode());
+		result = prime * result + ((language == null) ? 0 : language.hashCode());
+		result = prime * result + ((originaltitle == null) ? 0 : originaltitle.hashCode());
 		result = prime * result + ((pages == null) ? 0 : pages.hashCode());
-		result = prime * result
-				+ ((publisheddate == null) ? 0 : publisheddate.hashCode());
-		result = prime * result
-				+ ((publishedplace == null) ? 0 : publishedplace.hashCode());
-		result = prime * result
-				+ ((publisher == null) ? 0 : publisher.hashCode());
+		result = prime * result + ((publisheddate == null) ? 0 : publisheddate.hashCode());
+		result = prime * result + ((publishedplace == null) ? 0 : publishedplace.hashCode());
+		result = prime * result + ((publisher == null) ? 0 : publisher.hashCode());
 		result = prime * result + ((series == null) ? 0 : series.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((title == null) ? 0 : title.hashCode());
-		result = prime * result
-				+ ((translator == null) ? 0 : translator.hashCode());
+		result = prime * result + ((translator == null) ? 0 : translator.hashCode());
 		return result;
 	}
 
@@ -131,11 +125,11 @@ public class Book {
 
 	public Book() {
 	}
-	
+
 	public Book(String title) {
 		this.setTitle(title);
 	}
-	
+
 	public Book(ObjectId id, String title) {
 		this(title);
 		this.setId(id);

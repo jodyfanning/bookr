@@ -33,63 +33,69 @@ public class RestTest {
 
 	@Test
 	public void wrapperPassesThroughAndReturns200() {
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		Result result = callAction(controllers.routes.ref.Rest.books(null, null), fakeRequest().withHeader("Accept", "application/json"));
-        		assertThat(status(result)).isEqualTo(200);
-            }
-        });
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
+						fakeRequest().withHeader("Accept", "application/json"));
+				assertThat(status(result)).isEqualTo(200);
+			}
+		});
 	}
 
 	@Test
 	public void wrapperCatchesAndReturns406() {
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		Result result = callAction(controllers.routes.ref.Rest.books(null, null), fakeRequest().withHeader("Accept", "text/plain"));
-        		assertThat(status(result)).isEqualTo(406);
-            }
-        });
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
+						fakeRequest().withHeader("Accept", "text/plain"));
+				assertThat(status(result)).isEqualTo(406);
+			}
+		});
 	}
-	
+
 	@Test
 	public void booksReturnsSomeBooks() {
 		@SuppressWarnings("serial")
-		List<Book> books = new ArrayList<Book>() {{
-			add(new Book("A test book"));
-		}};
+		List<Book> books = new ArrayList<Book>() {
+			{
+				add(new Book("A test book"));
+			}
+		};
 		when(dao.findAll()).thenReturn(books);
-		
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.books(null, null), fakeRequest().withHeader("Accept", "application/json"));
-        		String jsonResult = contentAsString(result);
-        		
-        		assertThat(status(result)).isEqualTo(200);
-        		assertThat(jsonResult.equals("[]")).isFalse();
-        		assertThat(jsonResult.contains("\"title\":\"A test book\"")).isTrue();
-            }
-        });
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
+						fakeRequest().withHeader("Accept", "application/json"));
+				String jsonResult = contentAsString(result);
+
+				assertThat(status(result)).isEqualTo(200);
+				assertThat(jsonResult.equals("[]")).isFalse();
+				assertThat(jsonResult.contains("\"title\":\"A test book\"")).isTrue();
+			}
+		});
 	}
-	
+
 	@Test
 	public void getsASingleBookById() {
 		final ObjectId id = ObjectId.get();
 		final String bookId = id.toString();
 		final Book book = new Book("A single book");
 		when(dao.get(id)).thenReturn(book);
-		
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.getBook(bookId), fakeRequest().withHeader("Accept", "application/json"));
-        		String jsonResult = contentAsString(result);
-        		
-        		assertThat(status(result)).isEqualTo(200);
-        		assertThat(jsonResult.equals("[]")).isFalse();
-        		assertThat(jsonResult.contains("\"title\":\"A single book\"")).isTrue();
-            }
-        });
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.getBook(bookId),
+						fakeRequest().withHeader("Accept", "application/json"));
+				String jsonResult = contentAsString(result);
+
+				assertThat(status(result)).isEqualTo(200);
+				assertThat(jsonResult.equals("[]")).isFalse();
+				assertThat(jsonResult.contains("\"title\":\"A single book\"")).isTrue();
+			}
+		});
 	}
 
 	@Test
@@ -97,15 +103,16 @@ public class RestTest {
 		final ObjectId id = ObjectId.get();
 		final String bookId = id.toString();
 		when(dao.get(id)).thenReturn(null);
-		
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.getBook(bookId), fakeRequest().withHeader("Accept", "application/json"));
 
-        		assertThat(status(result)).isEqualTo(404);
-            }
-        });
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.getBook(bookId),
+						fakeRequest().withHeader("Accept", "application/json"));
+
+				assertThat(status(result)).isEqualTo(404);
+			}
+		});
 	}
 
 	@Test
@@ -119,18 +126,19 @@ public class RestTest {
 		when(dao.deleteById(id)).thenReturn(deleteResult);
 		when(deleteResult.getLastError()).thenReturn(commandResult);
 		when(commandResult.ok()).thenReturn(true);
-		
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId), fakeRequest().withHeader("Accept", "application/json"));
-        		String jsonResult = contentAsString(result);
-        		
-        		assertThat(status(result)).isEqualTo(200);
-        		assertThat(jsonResult.equals("[]")).isFalse();
-        		assertThat(jsonResult.contains("\"title\":\"A deleted book\"")).isTrue();
-            }
-        });
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
+						fakeRequest().withHeader("Accept", "application/json"));
+				String jsonResult = contentAsString(result);
+
+				assertThat(status(result)).isEqualTo(200);
+				assertThat(jsonResult.equals("[]")).isFalse();
+				assertThat(jsonResult.contains("\"title\":\"A deleted book\"")).isTrue();
+			}
+		});
 	}
 
 	@Test
@@ -138,15 +146,16 @@ public class RestTest {
 		final ObjectId id = ObjectId.get();
 		final String bookId = id.toString();
 		when(dao.get(id)).thenReturn(null);
-		
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId), fakeRequest().withHeader("Accept", "application/json"));
 
-        		assertThat(status(result)).isEqualTo(404);
-            }
-        });
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
+						fakeRequest().withHeader("Accept", "application/json"));
+
+				assertThat(status(result)).isEqualTo(404);
+			}
+		});
 	}
 
 	@Test
@@ -160,15 +169,16 @@ public class RestTest {
 		when(dao.deleteById(id)).thenReturn(deleteResult);
 		when(deleteResult.getLastError()).thenReturn(commandResult);
 		when(commandResult.ok()).thenReturn(false);
-		
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId), fakeRequest().withHeader("Accept", "application/json"));
 
-        		assertThat(status(result)).isEqualTo(500);
-            }
-        });
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
+						fakeRequest().withHeader("Accept", "application/json"));
+
+				assertThat(status(result)).isEqualTo(500);
+			}
+		});
 	}
 
 	@Test
@@ -178,19 +188,20 @@ public class RestTest {
 		final Book fBook = book;
 		final JsonNode body = Json.toJson(fBook);
 
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.newBook(), fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
-        		String jsonResult = contentAsString(result);
-        		
-        		assertThat(status(result)).isEqualTo(201);
-        		Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
-        		assertThat(insertedBook.equals(fBook)).isTrue();
-            }
-        });
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.newBook(),
+						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
+				String jsonResult = contentAsString(result);
+
+				assertThat(status(result)).isEqualTo(201);
+				Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
+				assertThat(insertedBook.equals(fBook)).isTrue();
+			}
+		});
 	}
-	
+
 	@Test
 	public void aNewBookRejectsBrokenISBNs() {
 		Book book = new Book("A new book");
@@ -199,13 +210,14 @@ public class RestTest {
 		final Book fBook = book;
 		final JsonNode body = Json.toJson(fBook);
 
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-        		MorphiaObject.dao = dao;
-        		Result result = callAction(controllers.routes.ref.Rest.newBook(), fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.newBook(),
+						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
 
-        		assertThat(status(result)).isEqualTo(400);
-            }
-        });
+				assertThat(status(result)).isEqualTo(400);
+			}
+		});
 	}
 }

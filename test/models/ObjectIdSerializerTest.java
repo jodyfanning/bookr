@@ -22,7 +22,7 @@ public class ObjectIdSerializerTest {
 		serializer.serialize(id, jgen, provider);
 		verify(jgen).writeString(id.toString());
 	}
-	
+
 	@Test
 	public void nullfromNull() throws JsonGenerationException, IOException {
 		serializer.serialize(null, jgen, provider);

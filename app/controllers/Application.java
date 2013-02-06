@@ -17,17 +17,13 @@ public class Application extends Controller {
 	}
 
 	public static Result books() {
-		return ok(
-				views.html.index.render(MorphiaObject.dao.find().asList(), bookForm)
-		);
+		return ok(views.html.index.render(MorphiaObject.dao.find().asList(), bookForm));
 	}
 
 	public static Result newBook() {
 		Form<Book> filledForm = bookForm.bindFromRequest();
-		if(filledForm.hasErrors()) {
-			return badRequest(
-					views.html.index.render(MorphiaObject.dao.find().asList(), bookForm)
-			);
+		if (filledForm.hasErrors()) {
+			return badRequest(views.html.index.render(MorphiaObject.dao.find().asList(), bookForm));
 		}
 		Book newBook = filledForm.get();
 		MorphiaObject.dao.save(newBook);

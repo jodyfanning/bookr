@@ -35,7 +35,7 @@ public class BookTest {
 		book.setSeries(series);
 		book.setSource(source);
 		book.setTranslator(translator);
-		
+
 		assertEquals(book.getId(), id);
 		assertEquals(book.getTitle(), title);
 		assertEquals(book.getAuthor(), author);

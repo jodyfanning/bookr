@@ -18,6 +18,5 @@ public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO<Boo
 	public List<Book> findAll() {
 		return ds.find(Book.class).order("author,title").asList();
 	}
-	
-	
+
 }

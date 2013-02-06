@@ -12,10 +12,9 @@ import org.codehaus.jackson.map.JsonDeserializer;
 public class ObjectIdDeserializer extends JsonDeserializer<ObjectId> {
 
 	@Override
-	public ObjectId deserialize(JsonParser parser, DeserializationContext context)
-			throws IOException, JsonProcessingException {
+	public ObjectId deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
 		String value = parser.getText();
-		if(value != null && !value.equalsIgnoreCase("null")) {
+		if (value != null && !value.equalsIgnoreCase("null")) {
 			try {
 				ObjectId id = new ObjectId(value);
 				return id;
