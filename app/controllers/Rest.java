@@ -3,6 +3,7 @@ package controllers;
 import java.util.List;
 
 import models.Book;
+import models.BookValidator;
 
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.JsonNode;
@@ -30,9 +31,13 @@ public class Rest extends Controller {
 	public static Result newBook() {
 		JsonNode json = request().body().asJson();
 		Book newBook = Json.fromJson(json, Book.class);
-		MorphiaObject.dao.save(newBook, new WriteConcern(true));
-		JsonNode result = Json.toJson(newBook);
-		return ok(result);
+		BookValidator validator = new BookValidator();
+		if(validator.validate(newBook)) {
+			MorphiaObject.dao.save(newBook, new WriteConcern(true));
+			JsonNode result = Json.toJson(newBook);
+			return created(result);
+		}
+		return badRequest();
 	}
 	
 	@With(JsonAction.class)

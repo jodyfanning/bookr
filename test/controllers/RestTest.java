@@ -1,7 +1,6 @@
 package controllers;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static play.test.Helpers.callAction;
@@ -24,9 +23,7 @@ import org.junit.Test;
 import play.libs.Json;
 import play.mvc.Result;
 
-import com.google.code.morphia.Key;
 import com.mongodb.CommandResult;
-import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
 public class RestTest {
@@ -176,23 +173,18 @@ public class RestTest {
 
 	@Test
 	public void createsANewBook() {
-		@SuppressWarnings("unchecked")
-		final Key<Book> newKey = mock(Key.class);
 		Book book = new Book("A new book");
 		book.setAuthor("Any Body");
 		final Book fBook = book;
 		final JsonNode body = Json.toJson(fBook);
 
-		when(dao.save(any(Book.class), any(WriteConcern.class))).thenReturn(newKey);
-		when(newKey.getId()).thenReturn(fBook.getId());
-		
         running(fakeApplication(), new Runnable() {
             public void run() {
         		MorphiaObject.dao = dao;
         		Result result = callAction(controllers.routes.ref.Rest.newBook(), fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
         		String jsonResult = contentAsString(result);
         		
-        		assertThat(status(result)).isEqualTo(200);
+        		assertThat(status(result)).isEqualTo(201);
         		Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
         		assertThat(insertedBook.equals(fBook)).isTrue();
             }
@@ -201,27 +193,18 @@ public class RestTest {
 	
 	@Test
 	public void aNewBookRejectsBrokenISBNs() {
-		@SuppressWarnings("unchecked")
-		final Key<Book> newKey = mock(Key.class);
 		Book book = new Book("A new book");
 		book.setAuthor("Any Body");
 		book.setIsbn("abc");
 		final Book fBook = book;
 		final JsonNode body = Json.toJson(fBook);
 
-		when(dao.save(any(Book.class), any(WriteConcern.class))).thenReturn(newKey);
-		when(newKey.getId()).thenReturn(fBook.getId());
-		
         running(fakeApplication(), new Runnable() {
             public void run() {
         		MorphiaObject.dao = dao;
         		Result result = callAction(controllers.routes.ref.Rest.newBook(), fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
-        		String jsonResult = contentAsString(result);
-        		
-        		assertThat(status(result)).isEqualTo(200);
-        		Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
-        		assertThat(insertedBook.getId().toString().equals(fBook.getId().toString())).isTrue();
-        		assertThat(insertedBook.equals(fBook)).isTrue();
+
+        		assertThat(status(result)).isEqualTo(400);
             }
         });
 	}

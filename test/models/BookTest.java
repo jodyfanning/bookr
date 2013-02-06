@@ -1,8 +1,6 @@
 package models;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -51,21 +49,5 @@ public class BookTest {
 		assertEquals(book.getSeries(), series);
 		assertEquals(book.getSource(), source);
 		assertEquals(book.getTranslator(), translator);
-	}
-	
-	@Test
-	public void anInvalidISBN10() {
-		assertFalse(Book.isISBN10Valid("ab123"));
-		assertFalse(Book.isISBN10Valid("1234567890"));
-		assertTrue(Book.isISBN10Valid("1588800970"));
-		assertTrue(Book.isISBN10Valid("052164819X"));
-	}
-
-	@Test
-	public void anInvalidISBN13() {
-		assertFalse(Book.isISBN13Valid("ab123"));
-		assertFalse(Book.isISBN13Valid("1234567890123"));
-		assertTrue(Book.isISBN13Valid("9781405249430"));
-		assertTrue(Book.isISBN13Valid("9781423151630"));
 	}
 }
