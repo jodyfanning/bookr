@@ -1,7 +1,7 @@
 Bookr
 =====================================
 
-A personal project to play with Play Framework (2.1). It is (or will be) a simple application for tracking books to replace my existing one.
+A personal project to play with [Play Framework](http://www.playframework.org) (2.1). It is (or will be) a simple application for tracking books to replace my existing one.
 
 The system uses a database for persistance of the book list and a RESTful interface for accessing the information.
 
