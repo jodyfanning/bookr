@@ -1,6 +1,6 @@
 package models;
 
-import static org.junit.Assert.assertEquals;
+import static org.fest.assertions.Assertions.assertThat;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -22,6 +22,7 @@ public class BookTest {
 		String series = "A series";
 		String source = "Manual";
 		String translator = "a translator";
+		int version = 1;
 
 		Book book = new Book(id, title);
 		book.setAuthor(author);
@@ -35,19 +36,21 @@ public class BookTest {
 		book.setSeries(series);
 		book.setSource(source);
 		book.setTranslator(translator);
+		book.setVersion(version);
 
-		assertEquals(book.getId(), id);
-		assertEquals(book.getTitle(), title);
-		assertEquals(book.getAuthor(), author);
-		assertEquals(book.getIsbn(), isbn);
-		assertEquals(book.getLanguage(), language);
-		assertEquals(book.getOriginaltitle(), originaltitle);
-		assertEquals(book.getPages(), pages);
-		assertEquals(book.getPublisheddate(), publisheddate);
-		assertEquals(book.getPublishedplace(), publishedplace);
-		assertEquals(book.getPublisher(), publisher);
-		assertEquals(book.getSeries(), series);
-		assertEquals(book.getSource(), source);
-		assertEquals(book.getTranslator(), translator);
+		assertThat(book.getId()).isEqualTo(id);
+		assertThat(book.getTitle()).isEqualTo(title);
+		assertThat(book.getAuthor()).isEqualTo(author);
+		assertThat(book.getIsbn()).isEqualTo(isbn);
+		assertThat(book.getLanguage()).isEqualTo(language);
+		assertThat(book.getOriginaltitle()).isEqualTo(originaltitle);
+		assertThat(book.getPages()).isEqualTo(pages);
+		assertThat(book.getPublisheddate()).isEqualTo(publisheddate);
+		assertThat(book.getPublishedplace()).isEqualTo(publishedplace);
+		assertThat(book.getPublisher()).isEqualTo(publisher);
+		assertThat(book.getSeries()).isEqualTo(series);
+		assertThat(book.getSource()).isEqualTo(source);
+		assertThat(book.getTranslator()).isEqualTo(translator);
+		assertThat(book.getVersion()).isEqualTo(version);
 	}
 }

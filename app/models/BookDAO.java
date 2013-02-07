@@ -8,4 +8,5 @@ public interface BookDAO<T, K> extends DAO<T, K> {
 
 	List<T> findAll();
 
+	T safeUpdate(T item);
 }

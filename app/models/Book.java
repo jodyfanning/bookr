@@ -31,6 +31,7 @@ public class Book {
 	private String originaltitle;
 	private String translator;
 	private String source;
+	private int version = 1;
 
 	@Override
 	public int hashCode() {
@@ -237,5 +238,13 @@ public class Book {
 
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
 	}
 }
