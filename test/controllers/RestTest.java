@@ -40,7 +40,7 @@ public class RestTest {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 			}
 		});
@@ -51,7 +51,7 @@ public class RestTest {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
-						fakeRequest().withHeader("Accept", "text/plain"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_ACCEPTABLE);
 			}
 		});
@@ -71,7 +71,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
@@ -92,7 +92,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.getBook(bookId),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
@@ -112,7 +112,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.getBook(bookId),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_FOUND);
 			}
@@ -135,7 +135,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
@@ -155,7 +155,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_FOUND);
 			}
@@ -178,7 +178,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
-						fakeRequest().withHeader("Accept", "application/json"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.INTERNAL_SERVER_ERROR);
 			}
@@ -196,7 +196,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.newBook(),
-						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
+						fakeRequest().withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.CREATED);
@@ -219,7 +219,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.newBook(),
-						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
+						fakeRequest().withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.BAD_REQUEST);
 			}
 		});
@@ -241,7 +241,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.updateBook(originalBook.getId().toString()), fakeRequest()
-						.withJsonBody(body).withHeader("Accept", "application/json"));
+						.withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
@@ -261,7 +261,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.updateBook(ObjectId.get().toString()), fakeRequest()
-						.withJsonBody(body).withHeader("Accept", "application/json"));
+						.withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_FOUND);
 			}
 		});
@@ -280,7 +280,7 @@ public class RestTest {
 			public void run() {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.updateBook(originalBook.getId().toString()), fakeRequest()
-						.withJsonBody(body).withHeader("Accept", "application/json"));
+						.withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.CONFLICT);
 			}
 		});
