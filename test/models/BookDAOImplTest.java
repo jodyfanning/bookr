@@ -1,11 +1,13 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.bson.types.ObjectId;
@@ -76,5 +78,35 @@ public class BookDAOImplTest {
 		BookDAOImpl bookDAO = new BookDAOImpl(ds);
 		Book updatedBook = bookDAO.safeUpdate(originalBook);
 		assertThat(updatedBook.getVersion()).isEqualTo(originalVersion + 1);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void safeUpdateThrowsException() {
+		setupMocks();
+		Book originalBook = new Book("Another book");
+
+		Query<Book> query = mock(Query.class);
+		FieldEnd end = mock(FieldEnd.class);
+		when(ds.createQuery(Book.class)).thenReturn(query);
+		when(query.field(any(String.class))).thenReturn(end);
+		when(end.equal(any(ObjectId.class))).thenReturn(query);
+
+		UpdateOperations<Book> ops = mock(UpdateOperations.class);
+		when(ds.createUpdateOperations(Book.class)).thenReturn(ops);
+		when(ops.set(any(String.class), any(Object.class))).thenReturn(ops);
+		when(ops.inc(any(String.class))).thenReturn(ops);
+
+		UpdateResults<Book> result = mock(UpdateResults.class);
+		when(ds.update(query, ops)).thenReturn(result);
+		when(result.getUpdatedExisting()).thenReturn(false);
+
+		BookDAOImpl bookDAO = new BookDAOImpl(ds);
+		try {
+			bookDAO.safeUpdate(originalBook);
+		} catch (ConcurrentModificationException e) {
+			return;
+		}
+		fail("Didn't get concurrent modification exception");
 	}
 }

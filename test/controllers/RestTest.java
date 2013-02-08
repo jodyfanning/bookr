@@ -13,6 +13,7 @@ import static play.test.Helpers.running;
 import static play.test.Helpers.status;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import models.Book;
@@ -40,7 +41,7 @@ public class RestTest {
 			public void run() {
 				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
 						fakeRequest().withHeader("Accept", "application/json"));
-				assertThat(status(result)).isEqualTo(200);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 			}
 		});
 	}
@@ -51,7 +52,7 @@ public class RestTest {
 			public void run() {
 				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
 						fakeRequest().withHeader("Accept", "text/plain"));
-				assertThat(status(result)).isEqualTo(406);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_ACCEPTABLE);
 			}
 		});
 	}
@@ -73,7 +74,7 @@ public class RestTest {
 						fakeRequest().withHeader("Accept", "application/json"));
 				String jsonResult = contentAsString(result);
 
-				assertThat(status(result)).isEqualTo(200);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 				assertThat(jsonResult.equals("[]")).isFalse();
 				assertThat(jsonResult.contains("\"title\":\"A test book\"")).isTrue();
 			}
@@ -94,7 +95,7 @@ public class RestTest {
 						fakeRequest().withHeader("Accept", "application/json"));
 				String jsonResult = contentAsString(result);
 
-				assertThat(status(result)).isEqualTo(200);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 				assertThat(jsonResult.equals("[]")).isFalse();
 				assertThat(jsonResult.contains("\"title\":\"A single book\"")).isTrue();
 			}
@@ -113,7 +114,7 @@ public class RestTest {
 				Result result = callAction(controllers.routes.ref.Rest.getBook(bookId),
 						fakeRequest().withHeader("Accept", "application/json"));
 
-				assertThat(status(result)).isEqualTo(404);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_FOUND);
 			}
 		});
 	}
@@ -137,7 +138,7 @@ public class RestTest {
 						fakeRequest().withHeader("Accept", "application/json"));
 				String jsonResult = contentAsString(result);
 
-				assertThat(status(result)).isEqualTo(200);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 				assertThat(jsonResult.equals("[]")).isFalse();
 				assertThat(jsonResult.contains("\"title\":\"A deleted book\"")).isTrue();
 			}
@@ -156,7 +157,7 @@ public class RestTest {
 				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
 						fakeRequest().withHeader("Accept", "application/json"));
 
-				assertThat(status(result)).isEqualTo(404);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_FOUND);
 			}
 		});
 	}
@@ -179,7 +180,7 @@ public class RestTest {
 				Result result = callAction(controllers.routes.ref.Rest.deleteBook(bookId),
 						fakeRequest().withHeader("Accept", "application/json"));
 
-				assertThat(status(result)).isEqualTo(500);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.INTERNAL_SERVER_ERROR);
 			}
 		});
 	}
@@ -198,7 +199,7 @@ public class RestTest {
 						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
 				String jsonResult = contentAsString(result);
 
-				assertThat(status(result)).isEqualTo(201);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.CREATED);
 				Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
 				assertThat(insertedBook.equals(fBook)).isTrue();
 				verify(dao).save(any(Book.class), any(WriteConcern.class));
@@ -219,47 +220,68 @@ public class RestTest {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.newBook(),
 						fakeRequest().withJsonBody(body).withHeader("Accept", "application/json"));
-				assertThat(status(result)).isEqualTo(400);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.BAD_REQUEST);
 			}
 		});
 	}
 
 	@Test
 	public void updatesAnExistingBook() {
-		Book book = new Book("A new book");
-		book.setAuthor("Any Body");
-		final Book fBook = book;
-		final JsonNode body = Json.toJson(fBook);
+		Book oBook = new Book("A new book");
+		oBook.setAuthor("Any Body");
+		final Book originalBook = oBook;
+		Book eBook = new Book("A new book");
+		eBook.setAuthor("Any Body");
+		eBook.setVersion(2);
+		final Book expectedBook = eBook;
+		final JsonNode body = Json.toJson(originalBook);
+		when(dao.safeUpdate(originalBook)).thenReturn(expectedBook);
 
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				MorphiaObject.dao = dao;
-				Result result = callAction(controllers.routes.ref.Rest.updateBook(fBook.getId().toString()), fakeRequest()
+				Result result = callAction(controllers.routes.ref.Rest.updateBook(originalBook.getId().toString()), fakeRequest()
 						.withJsonBody(body).withHeader("Accept", "application/json"));
 				String jsonResult = contentAsString(result);
 
-				assertThat(status(result)).isEqualTo(200);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 				Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
-				assertThat(insertedBook.equals(fBook)).isTrue();
-				verify(dao).save(any(Book.class), any(WriteConcern.class));
+				assertThat(insertedBook.equals(expectedBook)).isTrue();
 			}
 		});
 	}
 
 	@Test
 	public void failsForNonExistingBook() {
-		final ObjectId unknown = ObjectId.get();
-		Book book = new Book("A new book");
-		book.setAuthor("Any Body");
-		final Book fBook = book;
-		final JsonNode body = Json.toJson(fBook);
+		Book originalBook = new Book("A new book");
+		originalBook.setAuthor("Any Body");
+		final JsonNode body = Json.toJson(originalBook);
 
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				MorphiaObject.dao = dao;
-				Result result = callAction(controllers.routes.ref.Rest.updateBook(unknown.toString()), fakeRequest()
+				Result result = callAction(controllers.routes.ref.Rest.updateBook(ObjectId.get().toString()), fakeRequest()
 						.withJsonBody(body).withHeader("Accept", "application/json"));
-				assertThat(status(result)).isEqualTo(400);
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_FOUND);
+			}
+		});
+	}
+
+	@Test
+	public void failsForModifiedBook() {
+		Book oBook = new Book("A new book");
+		oBook.setAuthor("Any Body");
+		final Book originalBook = oBook;
+		final JsonNode body = Json.toJson(originalBook);
+
+		when(dao.safeUpdate(originalBook)).thenThrow(new ConcurrentModificationException());
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.updateBook(originalBook.getId().toString()), fakeRequest()
+						.withJsonBody(body).withHeader("Accept", "application/json"));
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.CONFLICT);
 			}
 		});
 	}

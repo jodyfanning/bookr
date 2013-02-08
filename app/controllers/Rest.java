@@ -1,5 +1,6 @@
 package controllers;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import models.Book;
@@ -57,11 +58,15 @@ public class Rest extends Controller {
 		Book updatedBook = Json.fromJson(json, Book.class);
 		BookValidator validator = new BookValidator();
 		if (validator.validate(updatedBook) && id.equals(updatedBook.getId().toString())) {
-			MorphiaObject.dao.save(updatedBook, new WriteConcern(true));
-			JsonNode result = Json.toJson(updatedBook);
-			return ok(result);
+			try {
+				Book saved = MorphiaObject.dao.safeUpdate(updatedBook);
+				JsonNode result = Json.toJson(saved);
+				return ok(result);
+			} catch (ConcurrentModificationException e) {
+				return status(CONFLICT);
+			}
 		}
-		return badRequest();
+		return notFound();
 	}
 
 	@With(JsonAction.class)
