@@ -4,11 +4,14 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -22,6 +25,8 @@ import com.google.code.morphia.query.UpdateResults;
 
 public class BookDAOImplTest {
 
+	private static final String DEFAULT_QUERY = "author,title";
+	
 	DatastoreImpl ds = mock(DatastoreImpl.class);
 
 	private void setupMocks() {
@@ -32,7 +37,6 @@ public class BookDAOImplTest {
 
 	@Test
 	public void findsAll() {
-
 		@SuppressWarnings("serial")
 		List<Book> fakeList = new ArrayList<Book>() {
 			{
@@ -45,7 +49,7 @@ public class BookDAOImplTest {
 		@SuppressWarnings("unchecked")
 		Query<Book> query = mock(Query.class);
 		when(ds.createQuery(Book.class)).thenReturn(query);
-		when(query.order("author,title")).thenReturn(query);
+		when(query.order(DEFAULT_QUERY)).thenReturn(query);
 		when(query.asList()).thenReturn(fakeList);
 
 		BookDAOImpl bookDAO = new BookDAOImpl(ds);
@@ -108,5 +112,41 @@ public class BookDAOImplTest {
 			return;
 		}
 		fail("Didn't get concurrent modification exception");
+	}
+	
+	@Test
+	public void queryByFieldAndOrder() {
+		@SuppressWarnings("serial")
+		List<Book> fakeList = new ArrayList<Book>() {
+			{
+				add(new Book("A fake book"));
+			}
+		};
+		
+		setupMocks();
+
+		@SuppressWarnings("unchecked")
+		Query<Book> query = mock(Query.class);
+		when(ds.createQuery(Book.class)).thenReturn(query);
+		when(query.order("author,-title,source")).thenReturn(query);
+		when(query.asList()).thenReturn(fakeList);
+
+		BookDAOImpl bookDAO = new BookDAOImpl(ds);
+		
+		@SuppressWarnings("serial")
+		Map<String, String> q = new HashMap<String, String>() {{
+			put("author", "asc");
+			put("title", "desc");
+			put("source", "asc");
+		}};
+		
+		List<Book> list = bookDAO.findByQuery(q);
+		assertThat(list).isEqualTo(fakeList);
+		
+		//What happens when the map is empty?
+		q = new HashMap<String, String>();
+		when(query.order(DEFAULT_QUERY)).thenReturn(query);
+		list = bookDAO.findByQuery(q);
+		verify(query).order(DEFAULT_QUERY);
 	}
 }

@@ -30,23 +30,23 @@ public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
 
 	@Override
 	public List<Book> findAll() {
-		@SuppressWarnings("serial")
-		Map<String, String> query = new HashMap<String, String>() {{
-			put("author", "asc");
-			put("title", "asc");
-		}};
-		return findByQuery(query);
+		return findByQuery(new HashMap<String, String>());
 	}
 	
 	@Override
 	public List<Book> findByQuery(Map<String, String> queries) {
 		List<String> query = new ArrayList<String>();
-		for (String field : queries.keySet()) {
-			String order = queries.get(field);
-			if(order.equalsIgnoreCase("desc")) {
-				field = "-" + field;
+		if(null == queries || queries.isEmpty()) {
+			query.add("author");
+			query.add("title");
+		} else {
+			for (String field : queries.keySet()) {
+				String order = queries.get(field);
+				if(order.equalsIgnoreCase("desc")) {
+					field = "-" + field;
+				}
+				query.add(field);
 			}
-			query.add(field);
 		}
 		Query<Book> q = ds.createQuery(Book.class).order(StringUtils.join(query, ","));
 		return q.asList();
