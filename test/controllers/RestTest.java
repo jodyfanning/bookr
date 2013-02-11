@@ -51,7 +51,7 @@ public class RestTest {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
-						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "text/html,application/xhtml+xml"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_ACCEPTABLE);
 			}
 		});
