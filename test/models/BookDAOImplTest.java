@@ -44,8 +44,8 @@ public class BookDAOImplTest {
 
 		@SuppressWarnings("unchecked")
 		Query<Book> query = mock(Query.class);
-		when(ds.find(Book.class)).thenReturn(query);
-		when(query.order(any(String.class))).thenReturn(query);
+		when(ds.createQuery(Book.class)).thenReturn(query);
+		when(query.order("author,title")).thenReturn(query);
 		when(query.asList()).thenReturn(fakeList);
 
 		BookDAOImpl bookDAO = new BookDAOImpl(ds);

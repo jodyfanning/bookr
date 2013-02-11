@@ -1,6 +1,7 @@
 package controllers;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -12,6 +13,7 @@ import static play.test.Helpers.fakeRequest;
 import static play.test.Helpers.running;
 import static play.test.Helpers.status;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -21,6 +23,10 @@ import models.BookDAO;
 
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.junit.Test;
 
 import play.libs.Json;
@@ -29,11 +35,9 @@ import play.mvc.Result;
 import com.mongodb.CommandResult;
 import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
-
 public class RestTest {
 
-	@SuppressWarnings("unchecked")
-	protected final BookDAO<Book, ObjectId> dao = mock(BookDAO.class);
+	protected final BookDAO dao = mock(BookDAO.class);
 
 	@Test
 	public void wrapperPassesThroughAndReturns200() {
@@ -282,6 +286,47 @@ public class RestTest {
 				Result result = callAction(controllers.routes.ref.Rest.updateBook(originalBook.getId().toString()), fakeRequest()
 						.withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.CONFLICT);
+			}
+		});
+	}
+	
+	@Test
+	public void sortsByGivenFields() {
+		@SuppressWarnings("serial")
+		final List<Book> books = new ArrayList<Book>() {
+			{
+				add(new Book("A test book"));
+				add(new Book("Fake book 2"));
+			}
+		};
+		
+		when(dao.findAll()).thenReturn(books);
+		
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.books("title", "asc"),
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
+				String jsonResult = contentAsString(result);
+
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
+				assertThat(jsonResult.equals("[]")).isFalse();
+
+				JsonNode json = Json.parse(jsonResult);
+
+				List<Book> bookList = new ArrayList<Book>();
+				try {
+					ObjectMapper mapper = new ObjectMapper();
+					bookList = mapper.readValue(json, new TypeReference<List<Book>>() { });
+				} catch (JsonParseException e) {
+					fail("Parsing exception");
+				} catch (JsonMappingException e) {
+					fail("Mapping exception");
+				} catch (IOException e) {
+					fail("IO exception");
+				}
+				assertThat(bookList).hasSize(2);
+				assertThat(bookList.get(0)).isEqualTo(books.get(0));
 			}
 		});
 	}
