@@ -26,7 +26,7 @@ import com.google.code.morphia.query.UpdateResults;
 public class BookDAOImplTest {
 
 	private static final String DEFAULT_QUERY = "author,title";
-	
+
 	DatastoreImpl ds = mock(DatastoreImpl.class);
 
 	private void setupMocks() {
@@ -113,7 +113,7 @@ public class BookDAOImplTest {
 		}
 		fail("Didn't get concurrent modification exception");
 	}
-	
+
 	@Test
 	public void queryByFieldAndOrder() {
 		@SuppressWarnings("serial")
@@ -122,7 +122,7 @@ public class BookDAOImplTest {
 				add(new Book("A fake book"));
 			}
 		};
-		
+
 		setupMocks();
 
 		@SuppressWarnings("unchecked")
@@ -132,18 +132,20 @@ public class BookDAOImplTest {
 		when(query.asList()).thenReturn(fakeList);
 
 		BookDAOImpl bookDAO = new BookDAOImpl(ds);
-		
+
 		@SuppressWarnings("serial")
-		Map<String, String> q = new HashMap<String, String>() {{
-			put("author", "asc");
-			put("title", "desc");
-			put("source", "asc");
-		}};
-		
+		Map<String, String> q = new HashMap<String, String>() {
+			{
+				put("author", "asc");
+				put("title", "desc");
+				put("source", "asc");
+			}
+		};
+
 		List<Book> list = bookDAO.findByQuery(q);
 		assertThat(list).isEqualTo(fakeList);
-		
-		//What happens when the map is empty?
+
+		// What happens when the map is empty?
 		q = new HashMap<String, String>();
 		when(query.order(DEFAULT_QUERY)).thenReturn(query);
 		list = bookDAO.findByQuery(q);

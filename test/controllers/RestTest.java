@@ -35,6 +35,7 @@ import play.mvc.Result;
 import com.mongodb.CommandResult;
 import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
+
 public class RestTest {
 
 	protected final BookDAO dao = mock(BookDAO.class);
@@ -289,7 +290,7 @@ public class RestTest {
 			}
 		});
 	}
-	
+
 	@Test
 	public void sortsByGivenFields() {
 		@SuppressWarnings("serial")
@@ -299,9 +300,9 @@ public class RestTest {
 				add(new Book("Fake book 2"));
 			}
 		};
-		
+
 		when(dao.findAll()).thenReturn(books);
-		
+
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				MorphiaObject.dao = dao;
@@ -317,7 +318,8 @@ public class RestTest {
 				List<Book> bookList = new ArrayList<Book>();
 				try {
 					ObjectMapper mapper = new ObjectMapper();
-					bookList = mapper.readValue(json, new TypeReference<List<Book>>() { });
+					bookList = mapper.readValue(json, new TypeReference<List<Book>>() {
+					});
 				} catch (JsonParseException e) {
 					fail("Parsing exception");
 				} catch (JsonMappingException e) {

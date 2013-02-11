@@ -32,17 +32,17 @@ public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
 	public List<Book> findAll() {
 		return findByQuery(new HashMap<String, String>());
 	}
-	
+
 	@Override
 	public List<Book> findByQuery(Map<String, String> queries) {
 		List<String> query = new ArrayList<String>();
-		if(null == queries || queries.isEmpty()) {
+		if (null == queries || queries.isEmpty()) {
 			query.add("author");
 			query.add("title");
 		} else {
 			for (String field : queries.keySet()) {
 				String order = queries.get(field);
-				if(order.equalsIgnoreCase("desc")) {
+				if (order.equalsIgnoreCase("desc")) {
 					field = "-" + field;
 				}
 				query.add(field);
@@ -51,7 +51,7 @@ public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
 		Query<Book> q = ds.createQuery(Book.class).order(StringUtils.join(query, ","));
 		return q.asList();
 	}
-	
+
 	@Override
 	public Book safeUpdate(Book item) throws ConcurrentModificationException {
 		Query<Book> query = ds.createQuery(Book.class).field(Mapper.ID_KEY).equal(item.getId()).field("version")
