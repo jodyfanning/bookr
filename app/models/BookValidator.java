@@ -11,13 +11,18 @@ public class BookValidator {
 		}
 
 		if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()
-				&& !(isISBN10Valid(book.getIsbn()) || isISBN13Valid(book.getIsbn()))) {
+				&& !(isISBNValid(book.getIsbn()))) {
 			return false;
 		}
 
 		return true;
 	}
 
+	protected boolean isISBNValid(String isbn) {
+		String cleanIsbn = isbn.replaceAll("\\W", "");
+		return (isISBN10Valid(cleanIsbn) || isISBN13Valid(cleanIsbn));
+	}
+	
 	protected static boolean isISBN13Valid(String isbn) {
 		if (isbn.length() != 13) {
 			return false;
