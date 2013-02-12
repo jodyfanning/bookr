@@ -1,7 +1,10 @@
 package controllers;
 
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import models.Book;
 import models.BookValidator;
@@ -21,8 +24,23 @@ import com.mongodb.WriteResult;
 public class Rest extends Controller {
 
 	@With(JsonAction.class)
-	public static Result books(String filter, String order) {
-		List<Book> books = MorphiaObject.dao.findAll();
+	public static Result books(List<String> sort) {
+		@SuppressWarnings("unchecked")
+		List<Book> books = Collections.EMPTY_LIST;
+		if (null == sort || sort.size() == 0) {
+			books = MorphiaObject.dao.findAll();
+		} else {
+			Map<String, String> queries = new HashMap<String, String>();
+			for (String field : sort) {
+				String[] split = field.split(":");
+				if (split.length == 2) {
+					queries.put(split[0], split[1]);
+				} else {
+					queries.put(split[0], "asc");
+				}
+			}
+			books = MorphiaObject.dao.findByQuery(queries);
+		}
 		JsonNode result = Json.toJson(books);
 		return ok(result);
 	}

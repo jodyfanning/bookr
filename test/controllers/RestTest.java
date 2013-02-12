@@ -16,7 +16,9 @@ import static play.test.Helpers.status;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import models.Book;
 import models.BookDAO;
@@ -28,6 +30,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import play.libs.Json;
 import play.mvc.Result;
@@ -44,7 +47,7 @@ public class RestTest {
 	public void wrapperPassesThroughAndReturns200() {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
-				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
+				Result result = callAction(controllers.routes.ref.Rest.books(null),
 						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
 			}
@@ -55,7 +58,7 @@ public class RestTest {
 	public void wrapperCatchesAndReturns406() {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
-				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
+				Result result = callAction(controllers.routes.ref.Rest.books(null),
 						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "text/html,application/xhtml+xml"));
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.NOT_ACCEPTABLE);
 			}
@@ -75,7 +78,7 @@ public class RestTest {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
 				MorphiaObject.dao = dao;
-				Result result = callAction(controllers.routes.ref.Rest.books(null, null),
+				Result result = callAction(controllers.routes.ref.Rest.books(null),
 						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
@@ -213,6 +216,24 @@ public class RestTest {
 	}
 
 	@Test
+	public void aNewBookRejectsMissingTitle() {
+		Book book = new Book();
+		book.setAuthor("Any Body");
+		final Book fBook = book;
+		final JsonNode body = Json.toJson(fBook);
+
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.newBook(),
+						fakeRequest().withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
+
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.BAD_REQUEST);
+			}
+		});
+	}
+
+	@Test
 	public void aNewBookRejectsBrokenISBNs() {
 		Book book = new Book("A new book");
 		book.setAuthor("Any Body");
@@ -301,17 +322,23 @@ public class RestTest {
 			}
 		};
 
-		when(dao.findAll()).thenReturn(books);
-
 		running(fakeApplication(), new Runnable() {
+			@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 			public void run() {
+				List<String> sort = new ArrayList<String>() {
+					{
+						add("title:asc");
+					}
+				};
 				MorphiaObject.dao = dao;
-				Result result = callAction(controllers.routes.ref.Rest.books("title", "asc"),
+				ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+				when(dao.findByQuery(any(Map.class))).thenReturn(books);
+
+				Result result = callAction(controllers.routes.ref.Rest.books(sort),
 						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 				String jsonResult = contentAsString(result);
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
-				assertThat(jsonResult.equals("[]")).isFalse();
 
 				JsonNode json = Json.parse(jsonResult);
 
@@ -327,6 +354,16 @@ public class RestTest {
 				} catch (IOException e) {
 					fail("IO exception");
 				}
+
+				verify(dao).findByQuery(argument.capture());
+				Map sortMap = argument.getValue();
+				Map<String, String> expectedSortMap = new HashMap<String, String>() {
+					{
+						put("title", "asc");
+					}
+				};
+
+				assertThat(sortMap).hasSize(1).isEqualTo(expectedSortMap);
 				assertThat(bookList).hasSize(2);
 				assertThat(bookList.get(0)).isEqualTo(books.get(0));
 			}

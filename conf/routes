@@ -11,7 +11,7 @@ POST	/bbooks						controllers.Application.newBook()
 POST	/bbooks/:id/delete			controllers.Application.deleteBook(id: String)
 
 #REST
-GET		/books						controllers.Rest.books(filter="", order="")
+GET		/books						controllers.Rest.books(sort: java.util.List[String])
 POST	/books						controllers.Rest.newBook()
 GET		/books/:id					controllers.Rest.getBook(id: String)
 PUT		/books/:id					controllers.Rest.updateBook(id: String)
