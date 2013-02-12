@@ -6,25 +6,22 @@ import org.bson.types.ObjectId;
 import org.junit.Test;
 
 public class BookTest {
+	private String title = "This is a book";
+	private String author = "an author";
+	private String isbn = "1234";
+	private String language = "English";
+	private String originaltitle = "Tämä on kirja";
+	private String pages = "5092";
+	private String publisheddate = "2012-01-01";
+	private String publishedplace = "Espoo";
+	private String publisher = "Otava";
+	private String series = "A series";
+	private String source = "Manual";
+	private String translator = "a translator";
+	private int version = 1;
 
-	@Test
-	public void createABook() {
-		ObjectId id = ObjectId.get();
-		String title = "This is a book";
-		String author = "an author";
-		String isbn = "1234";
-		String language = "English";
-		String originaltitle = "Tämä on kirja";
-		String pages = "5092";
-		String publisheddate = "2012-01-01";
-		String publishedplace = "Espoo";
-		String publisher = "Otava";
-		String series = "A series";
-		String source = "Manual";
-		String translator = "a translator";
-		int version = 1;
-
-		Book book = new Book(id, title);
+	protected Book configureABook(Book book) {
+		book.setTitle(title);
 		book.setAuthor(author);
 		book.setIsbn(isbn);
 		book.setLanguage(language);
@@ -37,6 +34,14 @@ public class BookTest {
 		book.setSource(source);
 		book.setTranslator(translator);
 		book.setVersion(version);
+
+		return book;
+	}
+
+	@Test
+	public void createABook() {
+		ObjectId id = ObjectId.get();
+		Book book = configureABook(new Book(id, ""));
 
 		assertThat(book.getId()).isEqualTo(id);
 		assertThat(book.getTitle()).isEqualTo(title);
@@ -52,5 +57,10 @@ public class BookTest {
 		assertThat(book.getSource()).isEqualTo(source);
 		assertThat(book.getTranslator()).isEqualTo(translator);
 		assertThat(book.getVersion()).isEqualTo(version);
+
+		Book book2 = configureABook(new Book());
+
+		assertThat(book).isEqualTo(book2);
+		assertThat(book.hashCode()).isEqualTo(book2.hashCode());
 	}
 }
