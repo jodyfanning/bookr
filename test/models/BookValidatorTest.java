@@ -3,8 +3,9 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 
 import org.junit.Test;
+
 public class BookValidatorTest {
-	
+
 	private BookValidator validator = new BookValidator();
 
 	@Test
@@ -26,7 +27,7 @@ public class BookValidatorTest {
 	public void hasAnInvalidISBN13() {
 		assertThat(validator.isISBNValid("1234567890123")).isFalse();
 	}
-	
+
 	@Test
 	public void validatesABookWithTitleAndNoISBN() {
 		Book validBook = new Book("A title");
