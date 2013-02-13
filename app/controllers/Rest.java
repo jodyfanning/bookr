@@ -49,6 +49,10 @@ public class Rest extends Controller {
 	@BodyParser.Of(BodyParser.Json.class)
 	public static Result newBook() {
 		JsonNode json = request().body().asJson();
+		if (null == json) {
+			return badRequest();
+		}
+
 		Book newBook = Json.fromJson(json, Book.class);
 		BookValidator validator = new BookValidator();
 		if (validator.validate(newBook)) {
@@ -73,6 +77,10 @@ public class Rest extends Controller {
 	@BodyParser.Of(BodyParser.Json.class)
 	public static Result updateBook(String id) {
 		JsonNode json = request().body().asJson();
+		if (null == json) {
+			return badRequest();
+		}
+
 		Book updatedBook = Json.fromJson(json, Book.class);
 		BookValidator validator = new BookValidator();
 		if (validator.validate(updatedBook) && id.equals(updatedBook.getId().toString())) {
