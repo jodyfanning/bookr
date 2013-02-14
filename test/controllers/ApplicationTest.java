@@ -31,22 +31,6 @@ public class ApplicationTest {
 	}
 
 	@Test
-	public void renderCreateForm() {
-		Content html = views.html.index.render(new ArrayList<Book>(), Form.form(Book.class));
-		assertThat(contentType(html)).isEqualTo("text/html");
-		assertThat(contentAsString(html)).contains("Title:");
-		assertThat(contentAsString(html)).contains("Author:");
-		assertThat(contentAsString(html)).contains("ISBN:");
-		assertThat(contentAsString(html)).contains("Publisher:");
-		assertThat(contentAsString(html)).contains("Published date:");
-		assertThat(contentAsString(html)).contains("Published place:");
-		assertThat(contentAsString(html)).contains("Series:");
-		assertThat(contentAsString(html)).contains("Original title:");
-		assertThat(contentAsString(html)).contains("Translator:");
-		assertThat(contentAsString(html)).contains("Source:");
-	}
-
-	@Test
 	public void renderABook() {
 		@SuppressWarnings("serial")
 		List<Book> bookList = new ArrayList<Book>() {
