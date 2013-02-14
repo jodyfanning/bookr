@@ -1,5 +1,8 @@
 package models;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -32,6 +35,9 @@ public class Book {
 	private String translator;
 	private String source;
 	private int version = 1;
+
+	public static final List<String> properties = Arrays.asList("title", "author", "isbn", "publisher", "language", "pages",
+			"publisheddate", "publishedplace", "series", "originaltitle", "translator", "source");
 
 	@Override
 	public int hashCode() {
