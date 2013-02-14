@@ -22,6 +22,7 @@ import java.util.Map;
 
 import models.Book;
 import models.BookDAO;
+import models.InternalServerErrorException;
 
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.JsonNode;
@@ -66,7 +67,7 @@ public class RestTest {
 	}
 
 	@Test
-	public void booksReturnsSomeBooks() {
+	public void booksReturnsSomeBooks() throws InternalServerErrorException {
 		@SuppressWarnings("serial")
 		List<Book> books = new ArrayList<Book>() {
 			{
@@ -90,11 +91,11 @@ public class RestTest {
 	}
 
 	@Test
-	public void getsASingleBookById() {
+	public void getsASingleBookById() throws InternalServerErrorException {
 		final ObjectId id = ObjectId.get();
 		final String bookId = id.toString();
 		final Book book = new Book("A single book");
-		when(dao.get(id)).thenReturn(book);
+		when(dao.getSingle(id)).thenReturn(book);
 
 		running(fakeApplication(), new Runnable() {
 			public void run() {
@@ -128,14 +129,14 @@ public class RestTest {
 	}
 
 	@Test
-	public void deletesASingleBookById() {
+	public void deletesASingleBookById() throws InternalServerErrorException {
 		final ObjectId id = ObjectId.get();
 		final String bookId = id.toString();
 		final WriteResult deleteResult = mock(WriteResult.class);
 		final CommandResult commandResult = mock(CommandResult.class);
 		final Book book = new Book("A deleted book");
 		when(dao.get(id)).thenReturn(book);
-		when(dao.deleteById(id)).thenReturn(deleteResult);
+		when(dao.deleteSingle(id)).thenReturn(deleteResult);
 		when(deleteResult.getLastError()).thenReturn(commandResult);
 		when(commandResult.ok()).thenReturn(true);
 
@@ -171,14 +172,14 @@ public class RestTest {
 	}
 
 	@Test
-	public void failsAs500DeleteASingleBookById() {
+	public void failsAs500DeleteASingleBookById() throws InternalServerErrorException {
 		final ObjectId id = ObjectId.get();
 		final String bookId = id.toString();
 		final WriteResult deleteResult = mock(WriteResult.class);
 		final CommandResult commandResult = mock(CommandResult.class);
 		final Book book = new Book("A deleted book");
 		when(dao.get(id)).thenReturn(book);
-		when(dao.deleteById(id)).thenReturn(deleteResult);
+		when(dao.deleteSingle(id)).thenReturn(deleteResult);
 		when(deleteResult.getLastError()).thenReturn(commandResult);
 		when(commandResult.ok()).thenReturn(false);
 
@@ -210,7 +211,11 @@ public class RestTest {
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.CREATED);
 				Book insertedBook = Json.fromJson(Json.parse(jsonResult), Book.class);
 				assertThat(insertedBook.equals(fBook)).isTrue();
-				verify(dao).save(any(Book.class), any(WriteConcern.class));
+				try {
+					verify(dao).saveNew(any(Book.class), any(WriteConcern.class));
+				} catch (InternalServerErrorException e) {
+					fail("Internal server error");
+				}
 			}
 		});
 	}
@@ -227,6 +232,19 @@ public class RestTest {
 				MorphiaObject.dao = dao;
 				Result result = callAction(controllers.routes.ref.Rest.newBook(),
 						fakeRequest().withJsonBody(body).withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
+
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.BAD_REQUEST);
+			}
+		});
+	}
+
+	@Test
+	public void aNewBookRejectsMissingBody() {
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.newBook(),
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
 
 				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.BAD_REQUEST);
 			}
@@ -252,7 +270,7 @@ public class RestTest {
 	}
 
 	@Test
-	public void updatesAnExistingBook() {
+	public void updatesAnExistingBook() throws ConcurrentModificationException, InternalServerErrorException {
 		Book oBook = new Book("A new book");
 		oBook.setAuthor("Any Body");
 		final Book originalBook = oBook;
@@ -278,7 +296,7 @@ public class RestTest {
 	}
 
 	@Test
-	public void failsForNonExistingBook() {
+	public void updateRejectsNonExistingBook() {
 		Book originalBook = new Book("A new book");
 		originalBook.setAuthor("Any Body");
 		final JsonNode body = Json.toJson(originalBook);
@@ -294,7 +312,20 @@ public class RestTest {
 	}
 
 	@Test
-	public void failsForModifiedBook() {
+	public void updateRejectsMissingBody() {
+		running(fakeApplication(), new Runnable() {
+			public void run() {
+				MorphiaObject.dao = dao;
+				Result result = callAction(controllers.routes.ref.Rest.newBook(),
+						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
+
+				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.BAD_REQUEST);
+			}
+		});
+	}
+
+	@Test
+	public void updateRejectsModifiedBook() throws ConcurrentModificationException, InternalServerErrorException {
 		Book oBook = new Book("A new book");
 		oBook.setAuthor("Any Body");
 		final Book originalBook = oBook;
@@ -325,47 +356,49 @@ public class RestTest {
 		running(fakeApplication(), new Runnable() {
 			@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
 			public void run() {
-				List<String> sort = new ArrayList<String>() {
-					{
-						add("title:asc");
-					}
-				};
-				MorphiaObject.dao = dao;
-				ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-				when(dao.findByQuery(any(Map.class))).thenReturn(books);
-
-				Result result = callAction(controllers.routes.ref.Rest.books(sort),
-						fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
-				String jsonResult = contentAsString(result);
-
-				assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
-
-				JsonNode json = Json.parse(jsonResult);
-
-				List<Book> bookList = new ArrayList<Book>();
 				try {
+					List<String> sort = new ArrayList<String>() {
+						{
+							add("title:asc");
+						}
+					};
+					MorphiaObject.dao = dao;
+					ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+					when(dao.findByQuery(any(Map.class))).thenReturn(books);
+
+					Result result = callAction(controllers.routes.ref.Rest.books(sort),
+							fakeRequest().withHeader(play.mvc.Http.HeaderNames.ACCEPT, "application/json"));
+					String jsonResult = contentAsString(result);
+
+					assertThat(status(result)).isEqualTo(play.mvc.Http.Status.OK);
+
+					JsonNode json = Json.parse(jsonResult);
+
+					List<Book> bookList = new ArrayList<Book>();
 					ObjectMapper mapper = new ObjectMapper();
 					bookList = mapper.readValue(json, new TypeReference<List<Book>>() {
 					});
+
+					verify(dao).findByQuery(argument.capture());
+					Map sortMap = argument.getValue();
+					Map<String, String> expectedSortMap = new HashMap<String, String>() {
+						{
+							put("title", "asc");
+						}
+					};
+
+					assertThat(sortMap).hasSize(1).isEqualTo(expectedSortMap);
+					assertThat(bookList).hasSize(2);
+					assertThat(bookList.get(0)).isEqualTo(books.get(0));
 				} catch (JsonParseException e) {
 					fail("Parsing exception");
 				} catch (JsonMappingException e) {
 					fail("Mapping exception");
 				} catch (IOException e) {
 					fail("IO exception");
+				} catch (InternalServerErrorException e) {
+					fail("Internal server error");
 				}
-
-				verify(dao).findByQuery(argument.capture());
-				Map sortMap = argument.getValue();
-				Map<String, String> expectedSortMap = new HashMap<String, String>() {
-					{
-						put("title", "asc");
-					}
-				};
-
-				assertThat(sortMap).hasSize(1).isEqualTo(expectedSortMap);
-				assertThat(bookList).hasSize(2);
-				assertThat(bookList.get(0)).isEqualTo(books.get(0));
 			}
 		});
 	}

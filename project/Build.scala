@@ -14,7 +14,8 @@ object ApplicationBuild extends Build {
     "org.mongodb" % "mongo-java-driver" % "2.7.3",
     "com.google.code.morphia" % "morphia" % "0.99",
     "com.google.code.morphia" % "morphia-logging-slf4j" % "0.99",
-    "commons-lang" % "commons-lang" % "2.6"
+    "commons-lang" % "commons-lang" % "2.6",
+    "commons-beanutils" % "commons-beanutils" % "1.8.3"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

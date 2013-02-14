@@ -5,11 +5,6 @@
 # Home page
 GET     /                           controllers.Application.index()
 
-#Books
-GET		/bbooks						controllers.Application.books()
-POST	/bbooks						controllers.Application.newBook()
-POST	/bbooks/:id/delete			controllers.Application.deleteBook(id: String)
-
 #REST
 GET		/books						controllers.Rest.books(sort: java.util.List[String])
 POST	/books						controllers.Rest.newBook()

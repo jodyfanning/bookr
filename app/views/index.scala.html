@@ -6,21 +6,6 @@
 
 	<h1>Book List</h1>    
 
-    <h2>Add a new book</h2>
-    @form(routes.Application.newBook()) {
-        @inputText(bookForm("title"), '_label -> "Title:") 
-        @inputText(bookForm("author"), '_label -> "Author:") 
-        @inputText(bookForm("isbn"), '_label -> "ISBN:") 
-        @inputText(bookForm("publisher"), '_label -> "Publisher:") 
-        @inputText(bookForm("publishedplace"), '_label -> "Published place:") 
-        @inputText(bookForm("publisheddate"), '_label -> "Published date:") 
-        @inputText(bookForm("series"), '_label -> "Series:") 
-        @inputText(bookForm("originaltitle"), '_label -> "Original title:") 
-        @inputText(bookForm("translator"), '_label -> "Translator:") 
-        @inputText(bookForm("source"), '_label -> "Source:") 
-        <input type="submit" value="Create">
-    }
-
 	@if(books.size() == 1) {
 	  <h2>1 book</h2>
 	} else {
@@ -32,7 +17,6 @@
     		<th>Author</th>
     		<th>Publisher</th>
     		<th>ISBN</th>
-    		<th></th>
     	</tr>
         @for(book <- books) {
             <tr>
@@ -40,11 +24,6 @@
                 <td>@book.getAuthor()</td>
                 <td>@book.getPublisher()</td>
                 <td>@book.getIsbn()</td>
-                <td>
-                @form(routes.Application.deleteBook(book.getId().toString())) {
-                    <input type="submit" value="Delete">
-                }
-                </td>
             </tr>
         }
     </table>

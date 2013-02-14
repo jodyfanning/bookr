@@ -59,9 +59,10 @@ public class BookDAOImplTest {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void safeUpdate() {
+	public void safeUpdate() throws ConcurrentModificationException, InternalServerErrorException {
 		setupMocks();
 		Book originalBook = new Book("Another book");
+		originalBook.setPublishedplace("Helsinki");
 		int originalVersion = originalBook.getVersion();
 
 		Query<Book> query = mock(Query.class);
@@ -73,6 +74,7 @@ public class BookDAOImplTest {
 		UpdateOperations<Book> ops = mock(UpdateOperations.class);
 		when(ds.createUpdateOperations(Book.class)).thenReturn(ops);
 		when(ops.set(any(String.class), any(Object.class))).thenReturn(ops);
+		when(ops.unset(any(String.class))).thenReturn(ops);
 		when(ops.inc(any(String.class))).thenReturn(ops);
 
 		UpdateResults<Book> result = mock(UpdateResults.class);
@@ -110,6 +112,8 @@ public class BookDAOImplTest {
 			bookDAO.safeUpdate(originalBook);
 		} catch (ConcurrentModificationException e) {
 			return;
+		} catch (InternalServerErrorException e) {
+			fail("Internal server error");
 		}
 		fail("Didn't get concurrent modification exception");
 	}
