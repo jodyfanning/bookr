@@ -3,6 +3,7 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import com.google.code.morphia.query.FieldEnd;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.google.code.morphia.query.UpdateResults;
+import com.mongodb.MongoException;
 
 public class BookDAOImplTest {
 
@@ -59,7 +61,7 @@ public class BookDAOImplTest {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void safeUpdate() throws ConcurrentModificationException, InternalServerErrorException {
+	public void safeUpdate() throws ConcurrentModificationException, InternalServerErrorException, InvalidContentException {
 		setupMocks();
 		Book originalBook = new Book("Another book");
 		originalBook.setPublishedplace("Helsinki");
@@ -88,7 +90,7 @@ public class BookDAOImplTest {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void safeUpdateThrowsException() {
+	public void safeUpdateThrowsConcurrentException() {
 		setupMocks();
 		Book originalBook = new Book("Another book");
 
@@ -114,8 +116,47 @@ public class BookDAOImplTest {
 			return;
 		} catch (InternalServerErrorException e) {
 			fail("Internal server error");
+		} catch (InvalidContentException e) {
+			fail("Invalid content");
 		}
 		fail("Didn't get concurrent modification exception");
+	}
+
+	@Test
+	public void safeUpdateThrowsInvalidException() {
+		setupMocks();
+		Book originalBook = new Book();
+
+		BookDAOImpl bookDAO = new BookDAOImpl(ds);
+		try {
+			bookDAO.safeUpdate(originalBook);
+		} catch (ConcurrentModificationException e) {
+			fail("Concurrent error");
+		} catch (InternalServerErrorException e) {
+			fail("Internal server error");
+		} catch (InvalidContentException e) {
+			return;
+		}
+		fail("Didn't get invalid data exception");
+	}
+
+	@Test
+	public void safeUpdateThrowsServerException() {
+		setupMocks();
+		Book originalBook = new Book("bob");
+		doThrow(new MongoException("Arrrgggh")).when(ds).createQuery(Book.class);
+
+		BookDAOImpl bookDAO = new BookDAOImpl(ds);
+		try {
+			bookDAO.safeUpdate(originalBook);
+		} catch (ConcurrentModificationException e) {
+			fail("Concurrent error");
+		} catch (InternalServerErrorException e) {
+			return;
+		} catch (InvalidContentException e) {
+			fail("Invalid content error");
+		}
+		fail("Didn't get server error exception");
 	}
 
 	@Test

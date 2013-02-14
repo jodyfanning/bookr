@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import models.Book;
-import models.BookValidator;
 import models.InternalServerErrorException;
+import models.InvalidContentException;
 
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.JsonNode;
@@ -60,15 +60,13 @@ public class Rest extends Controller {
 			}
 
 			Book newBook = Json.fromJson(json, Book.class);
-			BookValidator validator = new BookValidator();
-			if (validator.validate(newBook)) {
-				MorphiaObject.dao.saveNew(newBook, new WriteConcern(true));
-				JsonNode result = Json.toJson(newBook);
-				return created(result);
-			}
-			return badRequest();
+			MorphiaObject.dao.saveNew(newBook, new WriteConcern(true));
+			JsonNode result = Json.toJson(newBook);
+			return created(result);
 		} catch (InternalServerErrorException e) {
 			return internalServerError(e.getMessage());
+		} catch (InvalidContentException e) {
+			return badRequest(e.getMessage());
 		}
 	}
 
@@ -93,21 +91,21 @@ public class Rest extends Controller {
 		try {
 			JsonNode json = request().body().asJson();
 			if (null == json) {
-				return badRequest();
+				throw new InvalidContentException("Missing JSON content");
 			}
 
 			Book updatedBook = Json.fromJson(json, Book.class);
-			BookValidator validator = new BookValidator();
-			if (validator.validate(updatedBook) && id.equals(updatedBook.getId().toString())) {
-				try {
-					Book saved = MorphiaObject.dao.safeUpdate(updatedBook);
-					JsonNode result = Json.toJson(saved);
-					return ok(result);
-				} catch (ConcurrentModificationException e) {
-					return status(CONFLICT);
-				}
+			if (id.equals(updatedBook.getId().toString())) {
+				Book saved = MorphiaObject.dao.safeUpdate(updatedBook);
+				JsonNode result = Json.toJson(saved);
+				return ok(result);
 			}
+
 			return notFound();
+		} catch (ConcurrentModificationException e) {
+			return status(CONFLICT);
+		} catch (InvalidContentException e) {
+			return badRequest(e.getMessage());
 		} catch (InternalServerErrorException e) {
 			return internalServerError(e.getMessage());
 		}

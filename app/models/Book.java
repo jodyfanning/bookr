@@ -13,7 +13,7 @@ import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
 
 @Entity(value = "books", concern = "FSYNC_SAFE", noClassnameStored = true)
-public class Book {
+public final class Book {
 
 	@JsonSerialize(using = ObjectIdSerializer.class)
 	@JsonDeserialize(using = ObjectIdDeserializer.class)

@@ -16,7 +16,7 @@ import java.util.Map;
 
 import models.Book;
 import models.BookDAO;
-import models.BookDAOImpl;
+import models.BookDAOFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -55,7 +55,7 @@ public class AcceptanceTest {
 	@Before
 	public void setupTestEnvironment() throws UnknownHostException, MongoException {
 		// Same Mongo as in TestGlobal
-		dao = new BookDAOImpl(new Mongo("127.0.0.1", 27017), new Morphia(), "testbookdatabase");
+		dao = BookDAOFactory.getBookDAO(new Mongo("127.0.0.1", 27017), new Morphia(), "testbookdatabase");
 		dao.getCollection().drop();
 		books.clear();
 

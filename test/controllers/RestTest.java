@@ -3,6 +3,7 @@ package controllers;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,6 +24,7 @@ import java.util.Map;
 import models.Book;
 import models.BookDAO;
 import models.InternalServerErrorException;
+import models.InvalidContentException;
 
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.JsonNode;
@@ -215,17 +217,20 @@ public class RestTest {
 					verify(dao).saveNew(any(Book.class), any(WriteConcern.class));
 				} catch (InternalServerErrorException e) {
 					fail("Internal server error");
+				} catch (InvalidContentException e) {
+					fail("Invalid content");
 				}
 			}
 		});
 	}
 
 	@Test
-	public void aNewBookRejectsMissingTitle() {
+	public void aNewBookRejectsMissingTitle() throws InvalidContentException, InternalServerErrorException {
 		Book book = new Book();
 		book.setAuthor("Any Body");
 		final Book fBook = book;
 		final JsonNode body = Json.toJson(fBook);
+		doThrow(new InvalidContentException("Arrrgggh!")).when(dao).saveNew(any(Book.class), any(WriteConcern.class));
 
 		running(fakeApplication(), new Runnable() {
 			public void run() {
@@ -252,12 +257,13 @@ public class RestTest {
 	}
 
 	@Test
-	public void aNewBookRejectsBrokenISBNs() {
+	public void aNewBookRejectsBrokenISBNs() throws InvalidContentException, InternalServerErrorException {
 		Book book = new Book("A new book");
 		book.setAuthor("Any Body");
 		book.setIsbn("abc");
 		final Book fBook = book;
 		final JsonNode body = Json.toJson(fBook);
+		doThrow(new InvalidContentException("Arrrgggh!")).when(dao).saveNew(any(Book.class), any(WriteConcern.class));
 
 		running(fakeApplication(), new Runnable() {
 			public void run() {
@@ -270,7 +276,8 @@ public class RestTest {
 	}
 
 	@Test
-	public void updatesAnExistingBook() throws ConcurrentModificationException, InternalServerErrorException {
+	public void updatesAnExistingBook() throws ConcurrentModificationException, InternalServerErrorException,
+			InvalidContentException {
 		Book oBook = new Book("A new book");
 		oBook.setAuthor("Any Body");
 		final Book originalBook = oBook;
@@ -325,7 +332,8 @@ public class RestTest {
 	}
 
 	@Test
-	public void updateRejectsModifiedBook() throws ConcurrentModificationException, InternalServerErrorException {
+	public void updateRejectsModifiedBook() throws ConcurrentModificationException, InternalServerErrorException,
+			InvalidContentException {
 		Book oBook = new Book("A new book");
 		oBook.setAuthor("Any Body");
 		final Book originalBook = oBook;

@@ -21,10 +21,11 @@ import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.google.code.morphia.query.UpdateResults;
 import com.mongodb.Mongo;
+import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
-public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
+final class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
 
 	public BookDAOImpl(Mongo mongo, Morphia morphia, String dbName) {
 		super(mongo, morphia, dbName);
@@ -32,6 +33,13 @@ public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
 
 	public BookDAOImpl(Datastore ds) {
 		super(ds);
+	}
+
+	protected void validate(Book item) throws InvalidContentException {
+		BookValidator validator = new BookValidator();
+		if (!validator.validate(item)) {
+			throw new InvalidContentException(validator.getError());
+		}
 	}
 
 	@Override
@@ -59,42 +67,49 @@ public class BookDAOImpl extends BasicDAO<Book, ObjectId> implements BookDAO {
 	}
 
 	@Override
-	public Book safeUpdate(Book item) throws ConcurrentModificationException, InternalServerErrorException {
-		Query<Book> query = ds.createQuery(Book.class).field(Mapper.ID_KEY).equal(item.getId()).field("version")
-				.equal(item.getVersion());
+	public Book safeUpdate(Book item) throws InvalidContentException, ConcurrentModificationException,
+			InternalServerErrorException {
+		validate(item);
 
-		UpdateOperations<Book> ops = ds.createUpdateOperations(Book.class);
+		try {
+			Query<Book> query = ds.createQuery(Book.class).field(Mapper.ID_KEY).equal(item.getId()).field("version")
+					.equal(item.getVersion());
 
-		List<String> fields = Book.properties;
-		for (String field : fields) {
-			try {
+			UpdateOperations<Book> ops = ds.createUpdateOperations(Book.class);
+
+			List<String> fields = Book.properties;
+			for (String field : fields) {
 				Object value = PropertyUtils.getSimpleProperty(item, field);
 				if (value != null) {
 					ops.set(field.toLowerCase(Locale.ENGLISH), value.toString());
 				} else {
 					ops.unset(field.toLowerCase(Locale.ENGLISH));
 				}
-			} catch (IllegalAccessException e) {
-				throw new InternalServerErrorException(e);
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (NoSuchMethodException e) {
-				e.printStackTrace();
 			}
-		}
 
-		ops.inc("version");
+			ops.inc("version");
 
-		UpdateResults<Book> result = ds.update(query, ops);
-		if (!result.getUpdatedExisting()) {
-			throw new ConcurrentModificationException("Book has already been modified");
+			UpdateResults<Book> result = ds.update(query, ops);
+			if (!result.getUpdatedExisting()) {
+				throw new ConcurrentModificationException("Book has already been modified");
+			}
+			item.setVersion(item.getVersion() + 1);
+			return item;
+		} catch (IllegalAccessException e) {
+			throw new InternalServerErrorException(e);
+		} catch (InvocationTargetException e) {
+			throw new InternalServerErrorException(e);
+		} catch (NoSuchMethodException e) {
+			throw new InternalServerErrorException(e);
+		} catch (MongoException e) {
+			throw new InternalServerErrorException(e);
 		}
-		item.setVersion(item.getVersion() + 1);
-		return item;
 	}
 
 	@Override
-	public Key<Book> saveNew(Book item, WriteConcern wc) throws InternalServerErrorException {
+	public Key<Book> saveNew(Book item, WriteConcern wc) throws InvalidContentException, InternalServerErrorException {
+		validate(item);
+
 		try {
 			return save(item, new WriteConcern(true));
 		} catch (Exception e) {

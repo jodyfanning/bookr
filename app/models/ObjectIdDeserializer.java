@@ -9,7 +9,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 
-public class ObjectIdDeserializer extends JsonDeserializer<ObjectId> {
+class ObjectIdDeserializer extends JsonDeserializer<ObjectId> {
 
 	@Override
 	public ObjectId deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {

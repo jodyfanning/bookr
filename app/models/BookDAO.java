@@ -33,7 +33,7 @@ public interface BookDAO extends DAO<Book, ObjectId> {
 	 * @return Returns the updated {@link Book}
 	 * @throws InternalServerErrorException
 	 */
-	Book safeUpdate(Book item) throws ConcurrentModificationException, InternalServerErrorException;
+	Book safeUpdate(Book item) throws InvalidContentException, ConcurrentModificationException, InternalServerErrorException;
 
 	/**
 	 * Given map of queries return all matching books. The query is a
@@ -57,7 +57,7 @@ public interface BookDAO extends DAO<Book, ObjectId> {
 	 * @return The {@link Key} for the saved book
 	 * @throws InternalServerErrorException
 	 */
-	Key<Book> saveNew(Book item, WriteConcern wc) throws InternalServerErrorException;
+	Key<Book> saveNew(Book item, WriteConcern wc) throws InvalidContentException, InternalServerErrorException;
 
 	/**
 	 * Get a single book based on the id

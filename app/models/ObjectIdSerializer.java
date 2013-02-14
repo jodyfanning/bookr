@@ -8,7 +8,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
-public class ObjectIdSerializer extends JsonSerializer<ObjectId> {
+class ObjectIdSerializer extends JsonSerializer<ObjectId> {
 
 	public ObjectIdSerializer() {
 		super();

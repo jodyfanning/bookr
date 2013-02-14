@@ -1,6 +1,6 @@
 import java.net.UnknownHostException;
 
-import models.BookDAOImpl;
+import models.BookDAOFactory;
 import play.GlobalSettings;
 
 import com.google.code.morphia.Morphia;
@@ -14,7 +14,7 @@ public class Global extends GlobalSettings {
 	public void onStart(play.Application application) {
 		super.beforeStart(application);
 		try {
-			MorphiaObject.dao = new BookDAOImpl(new Mongo("127.0.0.1", 27017), new Morphia(), "bookdatabase");
+			MorphiaObject.dao = BookDAOFactory.getBookDAO(new Mongo("127.0.0.1", 27017), new Morphia(), "bookdatabase");
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}

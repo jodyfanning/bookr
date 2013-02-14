@@ -1,20 +1,29 @@
 package models;
 
-public class BookValidator {
+class BookValidator {
+
+	private String error = "";
 
 	public BookValidator() {
 	}
 
 	public boolean validate(Book book) {
+		error = "";
 		if (book.getTitle() == null || book.getTitle().trim().isEmpty()) {
+			error = "Title is missing";
 			return false;
 		}
 
 		if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty() && !(isISBNValid(book.getIsbn()))) {
+			error = "Invalid ISBN";
 			return false;
 		}
 
 		return true;
+	}
+
+	public String getError() {
+		return error;
 	}
 
 	protected boolean isISBNValid(String isbn) {
