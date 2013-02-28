@@ -58,7 +58,7 @@ public class BookTest {
 		assertThat(book.getTranslator()).isEqualTo(translator);
 		assertThat(book.getVersion()).isEqualTo(version);
 
-		Book book2 = configureABook(new Book());
+		Book book2 = configureABook(new Book(id, ""));
 
 		assertThat(book).isEqualTo(book2);
 		assertThat(book.hashCode()).isEqualTo(book2.hashCode());

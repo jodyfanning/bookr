@@ -268,6 +268,10 @@ public class AcceptanceTest {
 
 				assertThat(responseCode).isEqualTo(play.mvc.Http.Status.OK);
 				Book updated = Json.fromJson(Json.parse(response), Book.class);
+
+				//Normalise the versions for purposes of the test
+				updatedBook.setVersion(2);
+				
 				assertThat(updated).isEqualTo(updatedBook);
 
 				browser.goTo("http://localhost:3333/books");
@@ -276,6 +280,7 @@ public class AcceptanceTest {
 
 				browser.goTo(bookURL);
 				Book book = Json.fromJson(Json.parse(browser.pageSource()), Book.class);
+				
 				assertThat(book).isEqualTo(updatedBook);
 			}
 		});

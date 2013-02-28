@@ -44,6 +44,7 @@ public final class Book {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((author == null) ? 0 : author.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((isbn == null) ? 0 : isbn.hashCode());
 		result = prime * result + ((language == null) ? 0 : language.hashCode());
 		result = prime * result + ((originaltitle == null) ? 0 : originaltitle.hashCode());
@@ -55,6 +56,7 @@ public final class Book {
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((title == null) ? 0 : title.hashCode());
 		result = prime * result + ((translator == null) ? 0 : translator.hashCode());
+		result = prime * result + version;
 		return result;
 	}
 
@@ -71,6 +73,11 @@ public final class Book {
 			if (other.author != null)
 				return false;
 		} else if (!author.equals(other.author))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
 			return false;
 		if (isbn == null) {
 			if (other.isbn != null)
@@ -127,7 +134,87 @@ public final class Book {
 				return false;
 		} else if (!translator.equals(other.translator))
 			return false;
+		if (version != other.version)
+			return false;
 		return true;
+	}
+
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Book [hashCode()=");
+		builder.append(hashCode());
+		builder.append(", ");
+		if (getId() != null) {
+			builder.append("getId()=");
+			builder.append(getId());
+			builder.append(", ");
+		}
+		if (getTitle() != null) {
+			builder.append("getTitle()=");
+			builder.append(getTitle());
+			builder.append(", ");
+		}
+		if (getAuthor() != null) {
+			builder.append("getAuthor()=");
+			builder.append(getAuthor());
+			builder.append(", ");
+		}
+		if (getIsbn() != null) {
+			builder.append("getIsbn()=");
+			builder.append(getIsbn());
+			builder.append(", ");
+		}
+		if (getPublisher() != null) {
+			builder.append("getPublisher()=");
+			builder.append(getPublisher());
+			builder.append(", ");
+		}
+		if (getLanguage() != null) {
+			builder.append("getLanguage()=");
+			builder.append(getLanguage());
+			builder.append(", ");
+		}
+		if (getPages() != null) {
+			builder.append("getPages()=");
+			builder.append(getPages());
+			builder.append(", ");
+		}
+		if (getPublisheddate() != null) {
+			builder.append("getPublisheddate()=");
+			builder.append(getPublisheddate());
+			builder.append(", ");
+		}
+		if (getPublishedplace() != null) {
+			builder.append("getPublishedplace()=");
+			builder.append(getPublishedplace());
+			builder.append(", ");
+		}
+		if (getSeries() != null) {
+			builder.append("getSeries()=");
+			builder.append(getSeries());
+			builder.append(", ");
+		}
+		if (getOriginaltitle() != null) {
+			builder.append("getOriginaltitle()=");
+			builder.append(getOriginaltitle());
+			builder.append(", ");
+		}
+		if (getTranslator() != null) {
+			builder.append("getTranslator()=");
+			builder.append(getTranslator());
+			builder.append(", ");
+		}
+		if (getSource() != null) {
+			builder.append("getSource()=");
+			builder.append(getSource());
+			builder.append(", ");
+		}
+		builder.append("getVersion()=");
+		builder.append(getVersion());
+		builder.append("]");
+		return builder.toString();
 	}
 
 	public Book() {
